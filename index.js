@@ -1,6 +1,6 @@
 var IOException = Java.type('java.io.IOException')
 var InputStream = Java.type('java.io.InputStream')
-// var File = Java.type('java.io.File')
+var File = Java.type('java.io.File')
 var FileInputStream = Java.type('java.io.FileInputStream')
 var InputStreamReader = Java.type('java.io.InputStreamReader')
 var GeneralSecurityException = Java.type('java.security.GeneralSecurityException')
@@ -10,14 +10,14 @@ var List = Java.type('java.util.List')
 var Credential = Java.type('com.google.api.client.auth.oauth2.Credential')
 var AuthorizationCodeInstalledApp = Java.type('com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp')
 var LocalServerReceiver = Java.type('com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver')
-var GoogleAuthorizationCodeFlow = Java.type('com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow')
+var GoogleAuthorizationCodeFlowBuilder = Java.type('com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow.Builder')
 var GoogleClientSecrets = Java.type('com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets')
 var GoogleNetHttpTransport = Java.type('com.google.api.client.googleapis.javanet.GoogleNetHttpTransport')
 var NetHttpTransport = Java.type('com.google.api.client.http.javanet.NetHttpTransport')
 var JsonFactory = Java.type('com.google.api.client.json.JsonFactory')
 var JacksonFactory = Java.type('com.google.api.client.json.jackson2.JacksonFactory')
 var FileDataStoreFactory = Java.type('com.google.api.client.util.store.FileDataStoreFactory')
-var Gmail = Java.type('com.google.api.services.gmail.Gmail')
+var GmailBuilder = Java.type('com.google.api.services.gmail.Gmail.Builder')
 var GmailScopes = Java.type('com.google.api.services.gmail.GmailScopes')
 var Label = Java.type('com.google.api.services.gmail.model.Label')
 var ListMessagesResponse = Java.type('com.google.api.services.gmail.model.ListMessagesResponse')
@@ -48,15 +48,14 @@ var SCOPES = [
  * @return An authorized Credential object.
  * @throws IOException If there is no client_secret.
  */
-function getCredentials () {
+function getCredentials() {
   var inputFile = new FileInputStream(new File(CREDENTIALS_FOLDER + '/' + CLIENT_SECRET_DIR))
   var clientSecrets = GoogleClientSecrets.load(
     JSON_FACTORY,
     new InputStreamReader(inputFile)
   )
 
-  var flow = new GoogleAuthorizationCodeFlow
-    .Builder(new NetHttpTransport(), JSON_FACTORY, clientSecrets, SCOPES)
+  var flow = new GoogleAuthorizationCodeFlowBuilder(new NetHttpTransport(), JSON_FACTORY, clientSecrets, SCOPES)
     .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(CREDENTIALS_FOLDER)))
     .setAccessType("offline")
     .build()
@@ -69,8 +68,7 @@ function getCredentials () {
 function read() {
   try {
     var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
-    var service = new Gmail
-      .Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials())
+    var service = new GmailBuilder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials())
       .setApplicationName(APPLICATION_NAME)
       .build()
 
