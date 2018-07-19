@@ -6,6 +6,7 @@ var InputStreamReader = Java.type('java.io.InputStreamReader')
 var GeneralSecurityException = Java.type('java.security.GeneralSecurityException')
 var Arrays = Java.type('java.util.Arrays')
 var List = Java.type('java.util.List')
+var Stream = Java.type('java.util.stream.Stream')
 
 var Credential = Java.type('com.google.api.client.auth.oauth2.Credential')
 var AuthorizationCodeInstalledApp = Java.type('com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp')
@@ -22,8 +23,62 @@ var GmailScopes = Java.type('com.google.api.services.gmail.GmailScopes')
 var Label = Java.type('com.google.api.services.gmail.model.Label')
 var ListMessagesResponse = Java.type('com.google.api.services.gmail.model.ListMessagesResponse')
 var Message = Java.type('com.google.api.services.gmail.model.Message')
+var MessagePart = Java.type('com.google.api.services.gmail.model.MessagePart')
+var MessagePartBody = Java.type('com.google.api.services.gmail.model.MessagePartBody')
+var MessagePartHeader = Java.type('com.google.api.services.gmail.model.MessagePartHeader')
 
 var JSON_FACTORY = JacksonFactory.getDefaultInstance();
+
+function getEmailSubject (message) {
+  var assunto = message
+    .getPayload()
+    .getHeaders()
+    .stream()
+    .filter(function(p) {
+      return p.getName().equals("Subject")
+    })
+  return assunto.reduce(function(acc, curr) {
+    return acc.concat(curr.getValue())
+  }, [])
+}
+
+function getEmailBody (message) {
+  return message.getSnippet()
+}
+
+function getEmailAttachments (service, userId, messageId) {
+  var message = service
+    .users()
+    .messages()
+    .get(userId, messageId)
+    .execute()
+
+  var parts = message
+    .getPayload()
+    .getParts()
+
+  var result = []
+  // parts.reduce is not a function
+  parts.forEach(function (part) {
+    if (part.getFilename() != null && part.getFilename().length() > 0) {
+      var attachPart = service
+        .users()
+        .messages()
+        .attachments()
+        .get(userId, messageId, attId)
+        .execute()
+
+      result.push({
+        fileName: part.getFilename(),
+        body: part.getBody(),
+        attachmentId: part.getBody().getAttachmentId(),
+        attachment: Base64.decodeBase64(attachPart.getData())
+      })
+    }
+  })
+
+  return result
+}
 
 /**
  * Cria um objeto do tipo Credential autorizado.
@@ -87,29 +142,40 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
 
     if (labels.isEmpty()) {
       show('email-reader message')
-      show("No labels found.")
-    } else {
-      show('email-reader message')
-      show("Labels:")
-
-      labels.forEach(function (label) {
-        var message = service
-          .users()
-          .messages()
-          .get(user, label.getId())
-          .execute()
-        show("Message snippet: " + message.getSnippet())
-      })
+      show("No labels/messages found.")
+      return
     }
+
+    show('email-reader message')
+    show("Labels:")
+
+    var result = []
+    // labels.reduce is not a function
+    labels.forEach(function (label) {
+      var message = service
+        .users()
+        .messages()
+        .get(user, label.getId())
+        .execute()
+      var messageObj = {
+        subject: getEmailSubject(message),
+        body: getEmailSubject(message),
+        attachments: getEmailAttachments(service, user, message.getId()),
+      }
+
+      result.push(messageObj)
+    })
+
+    return result
   } catch (e) {
     show('email-reader error')
     show(e)
   }
 }
 
-// read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
+read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
 
-exports = {
-  read: read,
-  scopes: GmailScopes
-}
+// exports = {
+//   read: read,
+//   scopes: GmailScopes
+// }
