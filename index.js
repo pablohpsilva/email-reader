@@ -24,23 +24,6 @@ var ListMessagesResponse = Java.type('com.google.api.services.gmail.model.ListMe
 var Message = Java.type('com.google.api.services.gmail.model.Message')
 
 var JSON_FACTORY = JacksonFactory.getDefaultInstance();
-// TODO: mudar isso
-var APPLICATION_NAME = "Gmail API Java Quickstart";
-// TODO: mudar isso
-var CREDENTIALS_FOLDER = "./credentials"; // Directory to store user credentials.
-// TODO: mudar isso
-var CLIENT_SECRET_DIR = "credentials.json"
-/**
- * Global instance of the scopes required by this quickstart.
- * If modifying these scopes, delete your previously saved credentials/ folder.
- */
-var SCOPES = [
-  GmailScopes.MAIL_GOOGLE_COM,
-  GmailScopes.GMAIL_METADATA,
-  GmailScopes.GMAIL_MODIFY
-]
-
-// private static final String CLIENT_SECRET_DIR  = "credentials2.json";
 
 /**
  * Creates an authorized Credential object.
@@ -48,15 +31,15 @@ var SCOPES = [
  * @return An authorized Credential object.
  * @throws IOException If there is no client_secret.
  */
-function getCredentials() {
-  var inputFile = new FileInputStream(new File(CREDENTIALS_FOLDER + '/' + CLIENT_SECRET_DIR))
+function getCredentials (credentialFolderPath, credentialJSONPath, scopes) {
+  var inputFile = new FileInputStream(new File(credentialJSONPath))
   var clientSecrets = GoogleClientSecrets.load(
     JSON_FACTORY,
     new InputStreamReader(inputFile)
   )
 
-  var flow = new GoogleAuthorizationCodeFlowBuilder(new NetHttpTransport(), JSON_FACTORY, clientSecrets, SCOPES)
-    .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(CREDENTIALS_FOLDER)))
+  var flow = new GoogleAuthorizationCodeFlowBuilder(new NetHttpTransport(), JSON_FACTORY, clientSecrets, scopes)
+    .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(credentialFolderPath)))
     .setAccessType("offline")
     .build()
 
@@ -65,15 +48,21 @@ function getCredentials() {
 }
 
 
-function read() {
+function read (applicationName, credentialFolderPath, credentialJSONPath, applicationScopes, applicationUser) {
+  var scopes = applicationScopes || [
+    GmailScopes.MAIL_GOOGLE_COM,
+    GmailScopes.GMAIL_METADATA,
+    GmailScopes.GMAIL_MODIFY
+  ]
+
   try {
     var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
-    var service = new GmailBuilder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials())
-      .setApplicationName(APPLICATION_NAME)
+    var service = new GmailBuilder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(credentialFolderPath, credentialJSONPath, scopes))
+      .setApplicationName(applicationName)
       .build()
 
     // Print the labels in the user's account.
-    var user = "me"
+    var user = applicationUser || "me"
     var listResponse = service
       .users()
       .messages()
@@ -104,4 +93,8 @@ function read() {
   }
 }
 
-read()
+// read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
+
+exports = {
+  googleEmailReader: read
+}

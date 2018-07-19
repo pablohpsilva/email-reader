@@ -1,4 +1,5 @@
 .lib
+.DS_Store
 credentials
 /test/.lib
 /test/coverage
