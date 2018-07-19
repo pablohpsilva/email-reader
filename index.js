@@ -26,10 +26,11 @@ var Message = Java.type('com.google.api.services.gmail.model.Message')
 var JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
 /**
- * Creates an authorized Credential object.
- * @param HTTP_TRANSPORT The network HTTP Transport.
+ * Cria um objeto do tipo Credential autorizado.
+ * @param {String} credentialFolderPath - caminho para a pasta "credentials" da sua aplicacao, onde sera salvo o binario StoredCredentials
+ * @param {String} credentialJSONPath - caminho para a pasta onde pode-se encontrar o "credentials.json" da sua aplicacao
+ * @param {Array[GmailScopes]} scopes - Quais sao os Scopes que serao usados na leitura dos emails
  * @return An authorized Credential object.
- * @throws IOException If there is no client_secret.
  */
 function getCredentials (credentialFolderPath, credentialJSONPath, scopes) {
   var inputFile = new FileInputStream(new File(credentialJSONPath))
@@ -47,7 +48,20 @@ function getCredentials (credentialFolderPath, credentialJSONPath, scopes) {
     .authorize("user")
 }
 
-
+/**
+  * @param {String} applicationName - nome da aplicacao criada no Google Console
+  * @param {String} credentialFolderPath - caminho para a pasta "credentials" da sua aplicacao, onde sera salvo o binario StoredCredentials
+  * @param {String} credentialJSONPath - caminho para a pasta onde pode-se encontrar o "credentials.json" da sua aplicacao
+  * @param {Array[GmailScopes]} applicationScopes - Quais sao os Scopes que serao usados na leitura dos emails
+  * @param {String} applicationUser - Qual o nome do usuario que usaremos para ler a caixa de email
+  * @example
+  * googleEmailReader('Gmail API Java Quickstart', './credentials', './credentials/credentials.json')
+  * @returns {Array[Objects]} - Retorna um array de objetos, sendo estes, informacoes referentes a cada email lido.
+  *
+  * @example
+  * googleEmailReader('Gmail API Java Quickstart', './credentials', './credentials/credentials.json', [googleEmailReader.scopes.MAIL_GOOGLE_COM, googleEmailReader.scopes.GMAIL_METADATA])
+  * @returns {Array[Objects]} - Retorna um array de objetos, sendo estes, informacoes referentes a cada email lido.
+*/
 function read (applicationName, credentialFolderPath, credentialJSONPath, applicationScopes, applicationUser) {
   var scopes = applicationScopes || [
     GmailScopes.MAIL_GOOGLE_COM,
@@ -96,5 +110,6 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
 // read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
 
 exports = {
-  googleEmailReader: read
+  googleEmailReader: read,
+  scopes: GmailScopes
 }
