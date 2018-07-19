@@ -110,6 +110,6 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
 // read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
 
 exports = {
-  googleEmailReader: read,
+  read: read,
   scopes: GmailScopes
 }
