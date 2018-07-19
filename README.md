@@ -10,7 +10,7 @@ thrust install mail
 
 # Como usar
 ```javascript
-var googleEmailReader = require('email-reader')
+var googleEmailReader = require('google-email-reader')
 
 googleEmailReader.read(
   'Gmail API Java Quickstart',
