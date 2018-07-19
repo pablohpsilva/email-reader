@@ -18,6 +18,7 @@ var NetHttpTransport = Java.type('com.google.api.client.http.javanet.NetHttpTran
 var JsonFactory = Java.type('com.google.api.client.json.JsonFactory')
 var JacksonFactory = Java.type('com.google.api.client.json.jackson2.JacksonFactory')
 var FileDataStoreFactory = Java.type('com.google.api.client.util.store.FileDataStoreFactory')
+var Base64 = Java.type('com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64')
 var GmailBuilder = Java.type('com.google.api.services.gmail.Gmail.Builder')
 var GmailScopes = Java.type('com.google.api.services.gmail.GmailScopes')
 var Label = Java.type('com.google.api.services.gmail.model.Label')
