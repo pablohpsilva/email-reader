@@ -5,7 +5,7 @@ googleEmailReader e um *bitcode* de leitura de emails do provedor Gmail para o [
 Posicionado em um app ThrustJS, no seu terminal:
 
 ```bash
-thrust install mail
+thrust install pablohpsilva/google-email-reader
 ```
 
 # Como usar
