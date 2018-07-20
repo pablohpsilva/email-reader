@@ -1,7 +1,7 @@
 {
   "bit": "google-email-reader",
   "path": "index.js",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "Pablo Henrique Penha Silva <pablohpsilva@gmail.com>, Bruno Machado Brandão <brunobrandao@softbox.com.br>, Mauricio Souza Vilela <mauriciovilela@softbox.com.br>",
   "description": "Email reader bitcode",
   "dependencies": {
@@ -21,7 +21,6 @@
       "com.google.oauth-client:google-oauth-client-java6:1.23.0",
       "org.mortbay.jetty:jetty:6.1.26",
       "org.mortbay.jetty:jetty-util:6.1.26",
-      "org.mortbay.jetty:servlet-api:2.5-20081211",
       "com.google.apis:google-api-services-gmail:v1-rev83-1.23.0"
     ]
   }
