@@ -90,18 +90,25 @@ function getEmailAttachments (service, userId, messageId) {
  */
 function getCredentials (credentialFolderPath, credentialJSONPath, scopes) {
   var inputFile = new FileInputStream(new File(credentialJSONPath))
+  show('getCrendentials: inputFile')
   var clientSecrets = GoogleClientSecrets.load(
     JSON_FACTORY,
     new InputStreamReader(inputFile)
   )
+  show('getCrendentials: clientSecrets')
 
   var flow = new GoogleAuthorizationCodeFlowBuilder(new NetHttpTransport(), JSON_FACTORY, clientSecrets, scopes)
     .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(credentialFolderPath)))
     .setAccessType("offline")
     .build()
+  show('getCrendentials: flow')
 
-  return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver())
+  var result = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver())
     .authorize("user")
+
+  show('getCrendentials: result')
+
+  return result
 }
 
 /**
@@ -131,6 +138,8 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
       .setApplicationName(applicationName)
       .build()
 
+    show('read:service')
+
     // Print the labels in the user's account.
     var user = applicationUser || "me"
     var listResponse = service
@@ -139,7 +148,11 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
       .list(user)
       .execute()
 
+    show('read:listResponse')
+
     var labels = listResponse.getMessages()
+
+    show('read:labels')
 
     if (labels.isEmpty()) {
       show('email-reader message')
@@ -147,8 +160,8 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
       return
     }
 
-    show('email-reader message')
-    show("Labels:")
+    show('read:email-reader message')
+    show("read:Labels:")
 
     var result = []
     // labels.reduce is not a function
@@ -166,6 +179,8 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
 
       result.push(messageObj)
     })
+
+    show('read:result')
 
     return result
   } catch (e) {
