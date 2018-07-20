@@ -31,16 +31,25 @@ var MessagePartHeader = Java.type('com.google.api.services.gmail.model.MessagePa
 var JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
 function getEmailSubject (message) {
-  var assunto = message
+  var assuntos = message
     .getPayload()
     .getHeaders()
     .stream()
     .filter(function(p) {
       return p.getName().equals("Subject")
     })
-  return assunto.reduce(function(acc, curr) {
-    return acc.concat(curr.getValue())
-  }, [])
+
+  var result = []
+
+  if (!assuntos) {
+    return result
+  }
+
+  assuntos.forEach(function (assunto) {
+    result.push(assunto.getValue())
+  })
+
+  return result
 }
 
 function getEmailBody (message) {
@@ -60,8 +69,16 @@ function getEmailAttachments (service, userId, messageId) {
 
   var result = []
   // parts.reduce is not a function
+  if (!parts) {
+    return result
+  }
+
   parts.forEach(function (part) {
     if (part.getFilename() != null && part.getFilename().length() > 0) {
+      var attId = part
+        .getBody()
+        .getAttachmentId()
+
       var attachPart = service
         .users()
         .messages()
@@ -73,7 +90,7 @@ function getEmailAttachments (service, userId, messageId) {
         fileName: part.getFilename(),
         body: part.getBody(),
         attachmentId: part.getBody().getAttachmentId(),
-        attachment: Base64.decodeBase64(attachPart.getData())
+        attachment: attachPart.getData()
       })
     }
   })
@@ -90,23 +107,19 @@ function getEmailAttachments (service, userId, messageId) {
  */
 function getCredentials (credentialFolderPath, credentialJSONPath, scopes) {
   var inputFile = new FileInputStream(new File(credentialJSONPath))
-  show('getCrendentials: inputFile')
   var clientSecrets = GoogleClientSecrets.load(
     JSON_FACTORY,
     new InputStreamReader(inputFile)
   )
-  show('getCrendentials: clientSecrets')
 
   var flow = new GoogleAuthorizationCodeFlowBuilder(new NetHttpTransport(), JSON_FACTORY, clientSecrets, scopes)
     .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(credentialFolderPath)))
     .setAccessType("offline")
     .build()
-  show('getCrendentials: flow')
 
   var result = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver())
     .authorize("user")
 
-  show('getCrendentials: result')
 
   return result
 }
@@ -133,12 +146,12 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
   ]
 
   try {
+    show('lendo...')
     var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
     var service = new GmailBuilder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(credentialFolderPath, credentialJSONPath, scopes))
       .setApplicationName(applicationName)
       .build()
 
-    show('read:service')
 
     // Print the labels in the user's account.
     var user = applicationUser || "me"
@@ -148,50 +161,57 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
       .list(user)
       .execute()
 
-    show('read:listResponse')
 
     var labels = listResponse.getMessages()
 
-    show('read:labels')
 
     if (labels.isEmpty()) {
-      show('email-reader message')
-      show("No labels/messages found.")
       return
     }
 
-    show('read:email-reader message')
-    show("read:Labels:")
 
     var result = []
+
     // labels.reduce is not a function
     labels.forEach(function (label) {
+
+      if (result.length > 3) {
+        return false
+      }
+
       var message = service
         .users()
         .messages()
         .get(user, label.getId())
         .execute()
+
+
       var messageObj = {
         subject: getEmailSubject(message),
-        body: getEmailSubject(message)
-        // attachments: getEmailAttachments(service, user, message.getId()),
+        body: getEmailBody(message),
+        attachments: getEmailAttachments(service, user, message.getId()),
       }
 
       result.push(messageObj)
     })
 
-    show('read:result')
+    show('fim leitura')
 
     return result
   } catch (e) {
-    show('email-reader error')
-    show(e)
   }
 }
-
-// read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
 
 exports = {
   read: read,
   scopes: GmailScopes
 }
+
+// var result = read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
+//   .filter(function(email) {
+//     return email.attachments
+//   })[0]
+
+// show(
+//   result.attachments
+// )
