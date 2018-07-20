@@ -174,9 +174,9 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
   }
 }
 
-read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
+// read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
 
-// exports = {
-//   read: read,
-//   scopes: GmailScopes
-// }
+exports = {
+  read: read,
+  scopes: GmailScopes
+}
