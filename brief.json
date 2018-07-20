@@ -1,7 +1,7 @@
 {
   "bit": "google-email-reader",
   "path": "index.js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Pablo Henrique Penha Silva <pablohpsilva@gmail.com>, Bruno Machado Brandão <brunobrandao@softbox.com.br>, Mauricio Souza Vilela <mauriciovilela@softbox.com.br>",
   "description": "Email reader bitcode",
   "dependencies": {

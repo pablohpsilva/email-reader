@@ -160,8 +160,8 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
         .execute()
       var messageObj = {
         subject: getEmailSubject(message),
-        body: getEmailSubject(message),
-        attachments: getEmailAttachments(service, user, message.getId()),
+        body: getEmailSubject(message)
+        // attachments: getEmailAttachments(service, user, message.getId()),
       }
 
       result.push(messageObj)
