@@ -146,7 +146,6 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
   ]
 
   try {
-    show('lendo...')
     var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
     var service = new GmailBuilder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(credentialFolderPath, credentialJSONPath, scopes))
       .setApplicationName(applicationName)
@@ -194,8 +193,6 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
 
       result.push(messageObj)
     })
-
-    show('fim leitura')
 
     return result
   } catch (e) {
