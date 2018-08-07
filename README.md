@@ -51,3 +51,20 @@ googleEmailReader.read(
 function read(applicationName, credentialFolderPath, credentialJSONPath [, applicationScopes, applicationUser])
 ```
 
+```javascript
+/**
+  * @param {String} applicationName - nome da aplicacao criada no Google Console
+  * @param {String} credentialFolderPath - caminho para a pasta "credentials" da sua aplicacao, onde sera salvo o binario StoredCredentials
+  * @param {String} credentialJSONPath - caminho para a pasta onde pode-se encontrar o "credentials.json" da sua aplicacao
+  * @param {String} to - Email destinatário
+  * @param {String} from - Email origem 
+  * @param {String} subject - Assunto
+  * @param {String} bodyText - Corpo email
+  * @param {java.io.file} file - Arquivo a ser enviado
+  * @example
+  * send('Gmail API SUA_APP', './credentials', './credentials/credentials.json', "mauriciovilela@softbox.com.br","mauriciovilela@softbox.com.br","Assunto", "Corpo", new java.io.File("/home/arquivo.pdf"))
+  * @returns {Object} - Retorna um objeto com informacoes referentes ao e-mail enviado
+ */
+function send (applicationName, credentialFolderPath, credentialJSONPath, to, from, subject, bodyText, file) {
+```
+
