@@ -28,7 +28,22 @@ var MessagePart = Java.type('com.google.api.services.gmail.model.MessagePart')
 var MessagePartBody = Java.type('com.google.api.services.gmail.model.MessagePartBody')
 var MessagePartHeader = Java.type('com.google.api.services.gmail.model.MessagePartHeader')
 
-var JSON_FACTORY = JacksonFactory.getDefaultInstance();
+var Properties = Java.type('java.util.Properties')
+var ByteArrayOutputStream = Java.type('java.io.ByteArrayOutputStream')
+
+// javax.mail
+var DataHandler = Java.type('javax.activation.DataHandler')
+var DataSource = Java.type('javax.activation.DataSource')
+var FileDataSource = Java.type('javax.activation.FileDataSource')
+var MessagingException = Java.type('javax.mail.MessagingException')
+var Multipart = Java.type('javax.mail.Multipart')
+var Session = Java.type('javax.mail.Session')
+var InternetAddress = Java.type('javax.mail.internet.InternetAddress')
+var MimeBodyPart = Java.type('javax.mail.internet.MimeBodyPart')
+var MimeMessage = Java.type('javax.mail.internet.MimeMessage')
+var MimeMultipart = Java.type('javax.mail.internet.MimeMultipart')
+
+var JSON_FACTORY = JacksonFactory.getDefaultInstance()
 
 function getEmailSubject (message) {
   var assuntos = message
@@ -151,7 +166,6 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
       .setApplicationName(applicationName)
       .build()
 
-
     // Print the labels in the user's account.
     var user = applicationUser || "me"
     var listResponse = service
@@ -196,19 +210,91 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
 
     return result
   } catch (e) {
+    print('Erro ao realizar leitura ', e.message)
+    e.printStackTrace()
+  }
+}
+
+function createEmailWithAttachment(to, from, subject, bodyText, file) {
+  var props = new Properties()
+  var session = Session.getInstance(props, null)
+
+  var email = new MimeMessage(session)
+
+  email.setFrom(new InternetAddress(from))
+  email.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(to))
+  email.setSubject(subject)
+
+  var mimeBodyPart = new MimeBodyPart()
+  mimeBodyPart.setText(bodyText)
+
+  var multipart = new MimeMultipart()
+  multipart.addBodyPart(mimeBodyPart)
+
+  mimeBodyPart = new MimeBodyPart()
+  var source = new FileDataSource(file)
+
+  mimeBodyPart.setDataHandler(new DataHandler(source))
+  mimeBodyPart.setFileName(file.getName())
+
+  multipart.addBodyPart(mimeBodyPart)
+  email.setContent(multipart)
+
+  return email
+}
+
+function createMessageWithEmail(emailContent) {
+  var bufferOut = new ByteArrayOutputStream()
+  emailContent.writeTo(bufferOut)
+  var bytes = bufferOut.toByteArray()
+  var encodedEmail = Base64.encodeBase64URLSafeString(bytes)
+  var message = new Message()
+  message.setRaw(encodedEmail)
+  return message
+}
+
+/**
+  * @param {String} applicationName - nome da aplicacao criada no Google Console
+  * @param {String} credentialFolderPath - caminho para a pasta "credentials" da sua aplicacao, onde sera salvo o binario StoredCredentials
+  * @param {String} credentialJSONPath - caminho para a pasta onde pode-se encontrar o "credentials.json" da sua aplicacao
+  * @param {String} to - Email destinatário
+  * @param {String} from - Email origem 
+  * @param {String} subject - Assunto
+  * @param {String} bodyText - Corpo email
+  * @param {java.io.file} file - Arquivo a ser enviado
+  * @example
+  * send('Gmail API SUA_APP', './credentials', './credentials/credentials.json', "mauriciovilela@softbox.com.br","mauriciovilela@softbox.com.br","Assunto", "Corpo", new java.io.File("/home/arquivo.pdf"))
+  * @returns {Object} - Retorna um objeto com informacoes referentes ao e-mail enviado
+ */
+function send (applicationName, credentialFolderPath, credentialJSONPath, to, from, subject, bodyText, file) {
+  var scopes = [
+    GmailScopes.MAIL_GOOGLE_COM,
+    GmailScopes.GMAIL_METADATA,
+    GmailScopes.GMAIL_MODIFY
+  ]
+
+  try {
+    var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
+    var service = new GmailBuilder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(credentialFolderPath, credentialJSONPath, scopes))
+      .setApplicationName(applicationName)
+      .build()
+
+    var user = "me"
+
+    var emailContent = createEmailWithAttachment(to, from, subject, bodyText, file)
+    var message = createMessageWithEmail(emailContent)
+
+    message = service.users().messages().send(user, message).execute()
+
+    return message.toPrettyString()
+  } catch (e) {
+    print('Erro ao realizar envio ', e.message)
+    e.printStackTrace()
   }
 }
 
 exports = {
   read: read,
+  send: send,
   scopes: GmailScopes
 }
-
-// var result = read("Gmail API Java Quickstart", "./credentials", "./credentials/credentials.json")
-//   .filter(function(email) {
-//     return email.attachments
-//   })[0]
-
-// show(
-//   result.attachments
-// )
