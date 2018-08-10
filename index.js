@@ -215,7 +215,7 @@ function read (applicationName, credentialFolderPath, credentialJSONPath, applic
   }
 }
 
-function createEmailWithAttachment(to, from, subject, bodyText, file) {
+function createEmailWithAttachment(to, from, subject, bodyText, objFile) {
   var props = new Properties()
   var session = Session.getInstance(props, null)
 
@@ -231,16 +231,26 @@ function createEmailWithAttachment(to, from, subject, bodyText, file) {
   var multipart = new MimeMultipart()
   multipart.addBodyPart(mimeBodyPart)
 
-  mimeBodyPart = new MimeBodyPart()
-  var source = new FileDataSource(file)
+  if (Array.isArray(objFile)) {
+    for (var i in objFile) {
+      addAttachment(multipart, objFile[i])
+    }
+  } else {
+    addAttachment(multipart, objFile)
+  }
 
-  mimeBodyPart.setDataHandler(new DataHandler(source))
-  mimeBodyPart.setFileName(file.getName())
-
-  multipart.addBodyPart(mimeBodyPart)
   email.setContent(multipart)
 
   return email
+}
+
+function addAttachment(multipart, file)
+{
+  var mimeBodyPart = new MimeBodyPart()
+  var source = new FileDataSource(file)
+  mimeBodyPart.setDataHandler(new DataHandler(source))
+  mimeBodyPart.setFileName(file.getName())
+  multipart.addBodyPart(mimeBodyPart)
 }
 
 function createMessageWithEmail(emailContent) {
